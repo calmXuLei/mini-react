@@ -319,7 +319,6 @@ function useState(initialVal) {
     const eagerState =
       typeof action === 'function' ? action(stateHooks.state) : action;
     if (eagerState === stateHook.state) return;
-    // stateHook.state = action(stateHook.state);
 
     stateHook.queue.push(typeof action === 'function' ? action : () => action);
 

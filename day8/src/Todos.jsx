@@ -6,14 +6,17 @@ export function Todos() {
     {
       id: crypto.randomUUID(),
       title: '吃饭',
+      done: false,
     },
     {
       id: crypto.randomUUID(),
       title: '睡觉',
+      done: true,
     },
     {
       id: crypto.randomUUID(),
       title: '打游戏',
+      done: false,
     },
   ]);
 
@@ -22,8 +25,25 @@ export function Todos() {
     setInputValue('');
   };
 
+  const handleRemove = (id) => {
+    const newTodos = todos.filter((todo) => todo.id !== id);
+    setTodos(newTodos);
+  };
+
+  const handleToggle = (id) => {
+    const newTodos = todos.map((todo) => {
+      if (todo.id === id) {
+        todo.done = !todo.done;
+      }
+
+      return todo;
+    });
+
+    setTodos(newTodos);
+  };
+
   function addTodo(title) {
-    setTodos((todos) => [...todos, { title }]);
+    setTodos((todos) => [...todos, { title, id: crypto.randomUUID() }]);
   }
 
   return (
@@ -38,9 +58,35 @@ export function Todos() {
 
       <ul>
         {...todos.map((todo) => {
-          return <li key={todo.id}>{todo.title}</li>;
+          return (
+            <li>
+              {/* {todo.title}
+              <button onClick={() => handleRemove(todo.id)}>remove</button>
+              <button onClick={() => handleToggle(todo.id)}>
+                {todo.done ? 'cancel' : 'done'}
+              </button> */}
+
+              <TodoItem
+                todo={todo}
+                handleRemove={handleRemove}
+                handleToggle={handleToggle}
+              />
+            </li>
+          );
         })}
       </ul>
+    </div>
+  );
+}
+
+function TodoItem({ todo, handleRemove, handleToggle }) {
+  return (
+    <div className={todo.done ? 'done' : 'active'}>
+      {todo.title}
+      <button onClick={() => handleRemove(todo.id)}>remove</button>
+      <button onClick={() => handleToggle(todo.id)}>
+        {todo.done ? 'cancel' : 'done'}
+      </button>
     </div>
   );
 }

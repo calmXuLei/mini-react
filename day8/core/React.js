@@ -110,7 +110,7 @@ function reconcileChildren(fiber, children) {
       }
     }
 
-    if (oldFiber && oldFiber.sibling) {
+    if (oldFiber) {
       oldFiber = oldFiber.sibling;
     }
 
@@ -121,6 +121,12 @@ function reconcileChildren(fiber, children) {
     }
     prevChild = newWork;
   });
+
+  while (oldFiber) {
+    deleitons.push(oldFiber);
+
+    oldFiber = oldFiber.sibling;
+  }
 }
 
 function updateFunctionComponent(fiber) {
@@ -128,7 +134,6 @@ function updateFunctionComponent(fiber) {
   stateHookIndex = 0;
   effectHooks = [];
   wipFiber = fiber;
-  // console.log(wipFiber);
   let children = [fiber.type(fiber.props)];
   reconcileChildren(fiber, children);
 }
@@ -260,9 +265,8 @@ function commitWork(fiber) {
     fiberParent = fiberParent.parent;
   }
 
-  if (fiber.effectTag === 'update') {
-    const oldFiber = fiber.alternate;
-    updateProps(fiber.dom, fiber.props, oldFiber.props);
+  if (fiber.effectTag === 'update' && fiber.dom) {
+    updateProps(fiber.dom, fiber.props, fiber.alternate.props);
   } else if (fiber.effectTag === 'placement') {
     if (fiber.dom) {
       if (fiber.insertBeforeNode) {
@@ -279,19 +283,6 @@ function commitWork(fiber) {
   commitWork(fiber.sibling);
 }
 
-function update() {
-  const currentFiber = wipFiber;
-
-  return () => {
-    wipRoot = {
-      ...currentFiber,
-      alternate: currentFiber,
-    };
-
-    nextWorkOfUnit = wipRoot;
-  };
-}
-
 let stateHookIndex;
 let stateHooks;
 function useState(initialVal) {
@@ -303,9 +294,9 @@ function useState(initialVal) {
   };
 
   // 批量处理，优化
-  stateHook.queue.forEach((action) => {
-    stateHook.state = action(stateHook.state);
-  });
+  stateHook.queue.forEach(
+    (action) => (stateHook.state = action(stateHook.state))
+  );
 
   stateHook.queue = [];
   stateHookIndex++;
@@ -317,7 +308,6 @@ function useState(initialVal) {
     // 提前检测
     const eagerState =
       typeof action === 'function' ? action(stateHook.state) : action;
-
     if (eagerState === stateHook.state) return;
 
     stateHook.queue.push(typeof action === 'function' ? action : () => action);
@@ -349,7 +339,7 @@ function useEffect(callback, deps) {
 export default {
   createElement,
   render,
-  update,
+  // update,
   useState,
   useEffect,
 };
