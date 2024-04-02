@@ -15,6 +15,7 @@ function createElement(type, props, ...children) {
     type,
     props: {
       ...props,
+      // 处理 children 中 child 为 string 的情况
       children: children.map(child => {
         return typeof child === 'string' ? createTextElement(child): child;
       }),
