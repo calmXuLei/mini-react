@@ -134,6 +134,7 @@ function updateFunctionComponent(fiber) {
   stateHookIndex = 0;
   effectHooks = [];
   wipFiber = fiber;
+  console.log(fiber.type(fiber.props));
   let children = [fiber.type(fiber.props)];
   reconcileChildren(fiber, children);
 }
@@ -184,9 +185,14 @@ function workLoop(deadLine) {
     }
     shouldYield = deadLine.timeRemaining() < 1;
   }
-  if (!nextWorkOfUnit) {
+  if (!nextWorkOfUnit && wipRoot) {
     commitRoot();
   }
+
+  if (nextWorkOfUnit && !wipRoot) {
+    wipRoot = currentRoot;
+  }
+
   requestIdleCallback(workLoop);
 }
 
@@ -206,6 +212,7 @@ function commitDeletion(fiber) {
 }
 
 function commitRoot() {
+  console.log('---------------------');
   wipRoot && commitWork(wipRoot.child);
   deleitons.forEach(commitDeletion);
   commitEffect();
@@ -226,7 +233,7 @@ function commitEffect() {
     } else {
       // update
       fiber.effectHooks?.forEach((newHook, index) => {
-        if (newHook.deps.length > 0) {
+        if (newHook.deps?.length > 0) {
           const oldEffect = fiber.alternate?.effectHooks[index];
 
           const newUpdate = oldEffect?.deps?.some((oldDep, i) => {
@@ -245,7 +252,7 @@ function commitEffect() {
     if (!fiber) return;
 
     fiber?.alternate?.effectHooks?.forEach((effectHook) => {
-      if (effectHook.deps.length > 0) {
+      if (effectHook.deps?.length > 0) {
         effectHook.cleanup && effectHook.cleanup();
       }
     });

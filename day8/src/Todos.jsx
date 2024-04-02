@@ -2,23 +2,34 @@ import React from '../core/React.js';
 
 export function Todos() {
   const [inputValue, setInputValue] = React.useState('');
-  const [todos, setTodos] = React.useState([
-    {
-      id: crypto.randomUUID(),
-      title: '吃饭',
-      done: false,
-    },
-    {
-      id: crypto.randomUUID(),
-      title: '睡觉',
-      done: true,
-    },
-    {
-      id: crypto.randomUUID(),
-      title: '打游戏',
-      done: false,
-    },
-  ]);
+  const [todos, setTodos] = React.useState([]);
+  const [currentTodos, setCurrentTodos] = React.useState([]);
+  const [type, setType] = React.useState('all');
+
+  React.useEffect(() => {
+    console.log('useEffect1');
+    setTodos(JSON.parse(localStorage.getItem('todos') || '[]'));
+  });
+
+  React.useEffect(() => {
+    const todos = getNewTodosByType();
+    console.log(todos);
+    setCurrentTodos(todos);
+  }, [type, todos]);
+
+
+  function getNewTodosByType() {
+    switch (type) {
+      case 'all':
+        return todos;
+      case 'done':
+        return todos.filter((todo) => todo.done);
+      case 'active':
+        return todos.filter((todo) => !todo.done);
+      default:
+        break;
+    }
+  }
 
   const handleAdd = () => {
     addTodo(inputValue);
@@ -42,8 +53,20 @@ export function Todos() {
     setTodos(newTodos);
   };
 
+  const handleSave = () => {
+    localStorage.setItem('todos', JSON.stringify(todos));
+  };
+
+  const handleRadioChange = (e) => {
+    console.log(e.target.value);
+    setType(e.target.value);
+  };
+
   function addTodo(title) {
-    setTodos((todos) => [...todos, { title, id: crypto.randomUUID() }]);
+    setTodos((todos) => [
+      ...todos,
+      { title, id: crypto.randomUUID(), done: false },
+    ]);
   }
 
   return (
@@ -55,9 +78,38 @@ export function Todos() {
         onChange={(e) => setInputValue(e.target.value)}
       />
       <button onClick={handleAdd}>Add</button>
+      <button onClick={handleSave}>save</button>
+      <br />
+      <div>
+        <input
+          type="radio"
+          id="all"
+          name="type"
+          value="all"
+          checked
+          onChange={handleRadioChange}
+        />
+        <label for="all">all</label> |
+        <input
+          type="radio"
+          id="done"
+          name="type"
+          value="done"
+          onChange={handleRadioChange}
+        />
+        <label for="done">done</label> |
+        <input
+          type="radio"
+          id="active"
+          name="type"
+          value="active"
+          onChange={handleRadioChange}
+        />
+        <label for="active">active</label>
+      </div>
 
       <ul>
-        {...todos.map((todo) => {
+        {...currentTodos.map((todo) => {
           return (
             <li>
               {/* {todo.title}
@@ -70,6 +122,7 @@ export function Todos() {
                 todo={todo}
                 handleRemove={handleRemove}
                 handleToggle={handleToggle}
+                onChange={handleRadioChange}
               />
             </li>
           );

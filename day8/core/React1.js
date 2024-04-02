@@ -58,6 +58,7 @@ function workLoop(deadline) {
 }
 
 function commitRoot() {
+  console.log('---------------------');
   deletions.forEach(commitDeletion);
   commitWork(wipRoot.child);
   commitEffectHooks();
