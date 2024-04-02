@@ -125,6 +125,7 @@ function reconcileChildren(fiber, children) {
 
       deleitons.push(oldFiber);
       if (oldFiber?.sibling) {
+        // 如果 旧几点存在 兄弟节点，插入节点
         newWork.insertBeforeNode = oldFiber.sibling;
       }
     }
